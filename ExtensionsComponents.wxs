@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+<?if $(var.Platform) = x64 ?>
+  <?define Win64 = "yes" ?>
+  <?define PlatformProgramFilesFolder = "ProgramFiles64Folder" ?>
+<?else ?>
+  <?define Win64 = "no" ?>
+  <?define PlatformProgramFilesFolder = "ProgramFilesFolder" ?>
+<?endif ?>
+	<Fragment Id='FragmentComponents'>
+		<DirectoryRef Id='INSTALLDIR'>
+			<Component Id="fdftkDLL" DiskId="1" Guid="C54716D6-F1C6-4366-AD1E-8C2DB1686801">
+				<File Id="filefdftkDLL" Name="fdftk.dll" Source="Files\$(var.Platform)\fdftk.dll" />
+			</Component>
+			<Component Id="gds32DLL" DiskId="1" Guid="D70180EF-1AE2-45FF-B79F-DF16056F972D">
+				<File Id="filegds32DLL" Name="gds32.dll" Source="Files\$(var.Platform)\gds32.dll" />
+			</Component>
+			<Component Id="libeay32DLL" DiskId="1" Guid="1BF3C9B6-6495-476E-85B8-2843B5F5458D">
+				<File Id="filelibeay32DLL" Name="libeay32.dll" Source="Files\$(var.Platform)\libeay32.dll" />
+			</Component>
+			<Component Id="libmcryptDLL" DiskId="1" Guid="34402BFF-5D45-4A07-89EF-C71F4DF3D9BF">
+				<File Id="filelibmcryptDLL" Name="libmcrypt.dll" Source="Files\$(var.Platform)\libmcrypt.dll" />
+			</Component>
+			<Component Id="libmysqlDLL" DiskId="1" Guid="4726DE50-BC55-46AC-9622-DEA04AE46E46">
+				<File Id="filelibmysqlDLL" Name="libmysql.dll" Source="Files\$(var.Platform)\libmysql.dll" />
+			</Component>
+			<Component Id="libenchantDLL" DiskId="1" Guid="E27E4C40-156D-11DE-8C30-0800200C9A66">
+				<File Id="filelibenchantDLL" Name="libenchant.dll" Source="Files\$(var.Platform)\libenchant.dll" />
+			</Component>
+			<Component Id="glib2DLL" DiskId="1" Guid="B36D25AD-F6F4-4D31-95DF-CF10DA4D4F94">
+				<File Id="fileglib2DLL" Name="glib-2.dll" Source="Files\$(var.Platform)\glib-2.dll" />
+			</Component>
+			<Component Id="gmodule2DLL" DiskId="1" Guid="43BEBA75-CF31-4E25-941C-F0385F2F2E71">
+				<File Id="filegmodule2DLL" Name="gmodule-2.dll" Source="Files\$(var.Platform)\gmodule-2.dll" />
+			</Component>
+			<Component Id="libsaslDLL" DiskId="1" Guid="EAC16AB4-148B-481C-ACA3-372F1D230C2B">
+				<File Id="filelibsaslDLL" Name="libsasl.dll" Source="Files\$(var.Platform)\libsasl.dll" />
+			</Component>
+			<Component Id="libssh2DLL" DiskId="1" Guid="B76847A3-6E0F-465C-B42F-4B0FAC3AF814">
+				<File Id="filelibssh2DLL" Name="libssh2.dll" Source="Files\$(var.Platform)\libssh2.dll" />
+			</Component>
+			<Component Id="ntwdblibDLL" DiskId="1" Guid="7FA2C1EB-5166-4D16-AD36-DEF92A491D8B">
+				<File Id="filentwdblibDLL" Name="ntwdblib.dll" Source="Files\$(var.Platform)\ntwdblib.dll" />
+			</Component>
+			<Component Id="msqlDLL" DiskId="1" Guid="C37BB17E-8C9D-4FB6-AD40-100BDDFDADD5">
+				<File Id="filemsqlDLL" Name="msql.dll" Source="Files\$(var.Platform)\msql.dll" />
+			</Component>
+			<Component Id="libpqDLL" DiskId="1" Guid="6C109270-64B0-11DD-AD8B-0800200C9A66">
+				<File Id="filelibpqDLL" Name="libpq.dll" Source="Files\$(var.Platform)\libpq.dll" />
+			</Component>
+			<Component Id="ssleay32DLL" DiskId="1" Guid="D7E5F122-9764-4165-BDDA-922D60408C2F">
+				<File Id="filessleay32DLL" Name="ssleay32.dll" Source="Files\$(var.Platform)\ssleay32.dll" />
+			</Component>
+			<Component Id="yazDLL" DiskId="1" Guid="4C0CE69A-DBE4-4294-88CC-F6E82A3CFCD1">
+				<File Id="fileyazSLL" Name="yaz.dll" Source="Files\$(var.Platform)\yaz.dll" />
+			</Component>
+			<Component Id="libswisheDLL" DiskId="1" Guid="4F1FD404-B722-4A1E-997A-474B6F001420">
+				<File Id="filelibswisheDLL" Name="libswish-e.dll" Source="Files\$(var.Platform)\libswish-e.dll" />
+			</Component>
+			<Component Id="fribidiDLL" DiskId="1" Guid="D08A7C40-924B-45B2-8053-C6A5117846B2">
+				<File Id="filefribidiDLL" Name="fribidi.dll" Source="Files\$(var.Platform)\fribidi.dll" />
+			</Component>
+			<Component Id="icudtDLL" DiskId="1" Guid="6370818E-7072-11DD-A88E-285D55D89593">
+				<File Id="fileicudtDLL" Name="icudt[ICUVER].dll" Source="Files\$(var.Platform)\icudt[ICUVER].dll" />
+			</Component>
+			<Component Id="icuinDLL" DiskId="1" Guid="6A57F7AC-7072-11DD-86B2-645D55D89593">
+				<File Id="fileicuinDLL" Name="icuin[ICUVER].dll" Source="Files\$(var.Platform)\icuin[ICUVER].dll" />
+			</Component>
+			<Component Id="icuioDLL" DiskId="1" Guid="705AA974-7072-11DD-AC26-CE5D55D89593">
+				<File Id="fileicuioDLL" Name="icuio[ICUVER].dll" Source="Files\$(var.Platform)\icuio[ICUVER].dll" />
+			</Component>
+			<Component Id="iculeDLL" DiskId="1" Guid="7729BDA8-7072-11DD-ADF2-165E55D89593">
+				<File Id="fileiculeDLL" Name="icule[ICUVER].dll" Source="Files\$(var.Platform)\icule[ICUVER].dll" />
+			</Component>
+			<Component Id="iculxDLL" DiskId="1" Guid="7E7C2D16-7072-11DD-B66F-5F5E55D89593">
+				<File Id="fileiculxDLL" Name="iculx[ICUVER].dll" Source="Files\$(var.Platform)\iculx[ICUVER].dll" />
+			</Component>
+			<Component Id="icutestDLL" DiskId="1" Guid="46853D20-1569-11DE-8C30-0800200C9A66">
+				<File Id="fileicutestDLL" Name="icutest[ICUVER].dll" Source="Files\$(var.Platform)\icutest[ICUVER].dll" />
+			</Component>
+			<Component Id="icutuDLL" DiskId="1" Guid="83707DAE-7072-11DD-8A63-B75E55D89593">
+				<File Id="fileicutuDLL" Name="icutu[ICUVER].dll" Source="Files\$(var.Platform)\icutu[ICUVER].dll" />
+			</Component>
+			<Component Id="icuucDLL" DiskId="1" Guid="93D0C0BE-7072-11DD-B624-6F5F55D89593">
+				<File Id="fileicuucDLL" Name="icuuc[ICUVER].dll" Source="Files\$(var.Platform)\icuuc[ICUVER].dll" />
+			</Component>
+			<Directory Id="extdirectory" Name="ext">
+				<Component Id="extdir" DiskId="1" Guid="3AB11270-4135-4C8C-9578-B034CEF2659F">
+					<CreateFolder/>
+					<IniFile Id="extdirINI" Action="addLine" 
+							Key="extension_dir" Directory="INSTALLDIR" Name="php.ini"
+							Section="PHP" Value="&quot;[INSTALLDIR]ext&quot;" />
+				</Component>
+			</Directory>
+            <Directory Id="extrasdirectory" Name="extras">
+			</Directory>
+		</DirectoryRef>
+	</Fragment>
+</Wix>

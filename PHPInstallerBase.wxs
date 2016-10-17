@@ -1,0 +1,1031 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+<?if $(var.Platform) = x64 ?>
+  <?define Win64 = "yes" ?>
+  <?define PlatformProgramFilesFolder = "ProgramFiles64Folder" ?>
+<?else ?>
+  <?define Win64 = "no" ?>
+  <?define PlatformProgramFilesFolder = "ProgramFilesFolder" ?>
+<?endif ?>
+  <Product Name="PHP $(var.Version)" Id="A062A356-1B4E-4367-8E5B-26363021051B" 
+    UpgradeCode="91C7AD14-5A1B-4EB5-98B6-C0A9E4918CA9" 
+    Language="1033" 
+    Codepage="1252" 
+    Version="$(var.Version)" 
+    Manufacturer="The PHP Group">
+
+    <Package Id="*" 
+      Keywords="Installer" 
+      Description="PHP Installer" 
+      Comments="PHP" 
+      Manufacturer="The PHP Group" 
+      InstallerVersion="300" 
+      Languages="1033" 
+      Compressed="yes" 
+      SummaryCodepage="1252"
+      InstallPrivileges="elevated" />
+    <Property Id="OLDVERSION" Secure="yes" />
+    <Upgrade Id="91C7AD14-5A1B-4EB5-98B6-C0A9E4918CA9">
+      <UpgradeVersion Property="OLDVERSION"
+        MigrateFeatures="yes" 
+        IncludeMinimum="yes" 
+        Minimum="5.2.0" />
+    </Upgrade>
+
+    <Condition 
+      Message="You need to be an administrator to install PHP using this installer.">
+      <![CDATA[( Privileged AND VersionNT >= 600 ) OR ( VersionNT < 600 )]]>
+    </Condition>
+    
+    <Condition 
+      Message="PHP requires Windows 2000/XP/2003/Vista/2008 or later to install">
+      <![CDATA[( VersionNT <= 500 ) OR ( Version9x <> 0 )]]>
+    </Condition>
+
+    <Media Id="1" 
+      Cabinet="PHP.cab" 
+      EmbedCab="yes" 
+      DiskPrompt="CD-ROM #1"/>
+      
+    <Property Id="DiskPrompt" Value="PHP Installer"/>
+    
+    <Property Id="ALLUSERS">1</Property>
+
+    <Property Id="PHPINIEXISTS">
+      <DirectorySearch Id="CheckFileDir" 
+        Path="[INSTALLDIR]" 
+        Depth="0">
+        <FileSearch Id="CheckFile" Name="php.ini"/>
+      </DirectorySearch>
+    </Property>
+[ts]
+    <Property Id="XITAMIDIR">
+      <RegistrySearch 
+        Id="xitamiRegistry" 
+        Root="HKLM" 
+        Key="Software\iMatrix\Installed Components\Xitami" 
+        Type="raw" 
+        Name="Directory"
+        Win64="$(var.Win64)"/>
+    </Property>
+[/ts]
+    <Property Id="FASTCGI60MODULEINSTALLED">
+        <DirectorySearch Id="InetsrvDir"
+            Path="[WindowsFolder]system32\inetsrv"
+            Depth="0">
+            <FileSearch 
+                Id="FcgiExtFile"
+                Name="fcgiext.dll"/>
+        </DirectorySearch>
+    </Property>
+    <Property Id="FASTCGI70MODULEINSTALLED">
+        <RegistrySearch 
+            Id="fastcgi70Registry" 
+            Root="HKLM" 
+            Key="SOFTWARE\Microsoft\InetStp\Components" 
+            Type="raw"
+            Name="FastCgi"
+            Win64="$(var.Win64)"/>
+    </Property>
+
+    <CustomAction Id='CheckFASTCGIINSTALLED' Property='FASTCGIINSTALLED' Value='1' />
+    <CustomAction Id='CheckFASTCGINOTINSTALLED' Property='FASTCGIINSTALLED' Value='0' />
+    <InstallUISequence>
+        <Custom Action="CheckFASTCGIINSTALLED" After="CostInitialize">
+            <![CDATA[FASTCGI60MODULEINSTALLED OR FASTCGI70MODULEINSTALLED]]>
+        </Custom>
+        <Custom Action="CheckFASTCGINOTINSTALLED" After="CostInitialize">
+            <![CDATA[NOT FASTCGI60MODULEINSTALLED AND NOT FASTCGI70MODULEINSTALLED]]>
+        </Custom>
+    </InstallUISequence>
+
+    <Property Id="APACHEREGDIR">
+      <RegistrySearch Id="apacheRegistry" 
+        Root="HKLM" 
+        Key="Software\PHP" 
+        Type="raw" 
+        Name="ApacheDir"
+        Win64="$(var.Win64)"/>
+    </Property>
+    <CustomAction Id='AssignAPACHEDIR' Property='APACHEDIR' Value='[$(var.PlatformProgramFilesFolder)]Apache Software Foundation\Apache2.[ge(5.4.0)]4[/end][lt(5.4.0)]2[/end]' />
+    <CustomAction Id='AssignAPACHEREGDIR' Property='APACHEDIR' Value='[APACHEREGDIR]' />
+    <InstallUISequence>
+        <Custom Action="AssignAPACHEDIR" After="CostInitialize">NOT APACHEDIR</Custom>
+        <Custom Action="AssignAPACHEREGDIR" After="CostInitialize">APACHEREGDIR</Custom>
+    </InstallUISequence>
+    
+    <Property Id="WEBSERVERPICKER" Value="noconfig" />
+    <Property Id="REG_WEBSERVERPICKER">
+      <RegistrySearch Id="webservertype" 
+        Root="HKLM" 
+        Key="Software\PHP" 
+        Type="raw" 
+        Name="WebServerType"
+        Win64="$(var.Win64)"/>
+    </Property>
+    <CustomAction Id='AssignWEBSERVERPICKER' Property='WEBSERVERPICKER' Value='[REG_WEBSERVERPICKER]' />
+    <InstallUISequence>
+        <Custom Action="AssignWEBSERVERPICKER" After="CostInitialize">REG_WEBSERVERPICKER</Custom>
+    </InstallUISequence>
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="$(var.PlatformProgramFilesFolder)" Name="PFiles">
+        <Directory Id="INSTALLDIR" Name="PHP">
+[nts]
+          <Component Id="gopearBAT" 
+            DiskId="1" 
+            Guid="C8385835-A5DD-4A90-9A44-5F49DE05B0B7">
+            <File Id="file2" 
+              Name="go-pear.bat" 
+              Source="Files\$(var.Platform)\go-pear.bat"/>
+          </Component>
+[/nts]
+          <Component Id="installTXT" 
+            DiskId="1" 
+            Guid="D1055308-60DA-4C10-A29B-E582D0A3D675">
+            <File Id="file3" 
+              Name="install.txt" 
+              Source="Files\$(var.Platform)\install.txt"/>
+          </Component>
+          <Component Id="licenseTXT" 
+            DiskId="1" 
+            Guid="9D6E2B5F-F334-4874-B57F-1D4B5A28D17C">
+            <File Id="file8" 
+              Name="license.txt" 
+              Source="Files\$(var.Platform)\license.txt">
+            </File>
+            <Shortcut Id="startmenuManual" 
+              Directory="ProgramMenuDir" 
+              WorkingDirectory="INSTALLDIR"
+              Name="License"
+              Advertise="yes"/>
+          </Component>
+          <Component Id="newsTXT" 
+            DiskId="1"
+            Guid="459AFF29-F8F5-4F0F-BC43-0DD4AA3D71F0">
+            <File Id="file10" 
+              Name="news.txt" 
+              Source="Files\$(var.Platform)\news.txt"/>
+          </Component>
+          <Component Id="readmedistbinsTXT" 
+            DiskId="1" 
+            Guid="23359910-5f6e-11de-8a39-0800200c9a66">
+            <File Id="filereadmedistbinsTXT" 
+            Name="readme-redist-bins.txt"
+            Source="Files\$(var.Platform)\readme-redist-bins.txt"/>
+          </Component>
+          <Component Id="phpcgiEXE" 
+            DiskId="1" 
+            Guid="7ECF5817-CAB7-41EE-9E91-DDD2B1F5951B">
+            <File Id="file12" 
+            Name="php-cgi.exe" 
+            Source="Files\$(var.Platform)\php-cgi.exe"/>
+          </Component>
+          <Component Id="phpwinEXE" 
+            DiskId="1" 
+            Guid="BA2ADC66-E28C-4D5F-B4DA-E5F0874B2A10">
+            <File Id="file13" 
+              Name="php-win.exe" 
+              Source="Files\$(var.Platform)\php-win.exe"/>
+          </Component>
+          <Component Id="RegisterPHPFilesREG" 
+            DiskId="1" 
+            Guid="77825049-82F0-4394-A246-A7D2F07BC5BC"
+            KeyPath="yes">
+            <ProgId Id="PHPFile" 
+              Description="PHP Script">
+              <Extension Id="php" 
+                ContentType="application/php">
+                <Verb Id="open" 
+                  Command="Run" 
+                  TargetFile="file13" 
+                  Argument="&quot;%*&quot;"/>
+              </Extension>
+            </ProgId>
+          </Component>
+          <Component Id="PHPRegistry" 
+            DiskId="1" 
+            Guid="1BFEB5D8-B6C0-49E4-918C-A9D52479EC84">
+            <RegistryKey Id="PHPRegistryInstallDir" Root="HKLM" Key="Software\PHP" ForceCreateOnInstall="yes">
+              <RegistryValue Type="string" Name="InstallDir" Value="[INSTALLDIR]"/>
+            </RegistryKey>
+            <RegistryKey Id="PHPRegistryVersion" Root="HKLM" Key="Software\PHP" ForceCreateOnInstall="yes">
+              <RegistryValue Type="string" Name="Version" Value="$(var.Version)"/>
+            </RegistryKey>
+          </Component>
+          <Component Id="phpEXE" 
+            DiskId="1" 
+            Guid="65C8E630-59D4-41FC-99C5-54E99C74968F">
+            <File Id="file14" 
+              Name="php.exe" 
+              Source="Files\$(var.Platform)\php.exe"/>
+            <Environment Id="phpEXEAddToPath" 
+              Name="PATH" 
+              Action="create" 
+              System="yes" 
+              Value="[INSTALLDIR]"/>
+            <Environment Id="PHPRC"
+              Name="PHPRC"
+              Action="create"
+              System="yes"
+              Value="[INSTALLDIR]"/>
+          </Component>
+          <Component Id="phpGIF" 
+            DiskId="1" 
+            Guid="962C10B2-FD98-4D90-8607-68DE0932A814">
+            <File Id="file15" 
+              Name="php.gif" 
+              Source="Files\$(var.Platform)\php.gif"/>
+          </Component>
+          <Component Id="phprecommendedINI" 
+            DiskId="1" 
+            Guid="B32D6227-3160-4D57-9724-0B35DC128519" 
+            Permanent="yes">
+            <File Id="file17" 
+              Name="php.ini" 
+              Source="Files\$(var.Platform)\php.ini" >
+            </File>
+            <Shortcut Id="startmenuPHPINI" 
+              Directory="ProgramMenuDir" 
+              WorkingDirectory="INSTALLDIR"
+              Name="php.ini"
+              Advertise="yes"/>
+            <IniFile Id="uploadtmpdirINI" 
+              Action="addLine" 
+              Key="upload_tmp_dir" 
+              Directory="INSTALLDIR" 
+              Name="php.ini" 
+              Section="PHP" 
+              Value="&quot;[%windir]\Temp&quot;"/>
+            <IniFile Id="sessionsavepathINI" 
+              Action="addLine" 
+              Key="session.save_path" 
+              Directory="INSTALLDIR" 
+              Name="php.ini" 
+              Section="PHP" 
+              Value="&quot;[%windir]\Temp&quot;"/>
+            <Condition>NOT PHPINIEXISTS</Condition>
+          </Component>
+          <Component Id="php5embedLIB" 
+            DiskId="1" 
+            Guid="8C0B065E-41DB-43DB-ABB2-716BE38988C7">
+            <File Id="file22" 
+              Name="php5embed.lib" 
+              Source="Files\$(var.Platform)\php5embed.lib"/>
+          </Component>
+          <Component Id="win2003eventlog" 
+            DiskId="1"
+            Guid="E4C43E12-F31C-4A8C-A084-4E604274D4C9">
+            <RegistryKey Id="w2k3EventMessageFile" Root="HKLM" Key="System\CurrentControlSet\Services\EventLog\Application\PHP" ForceCreateOnInstall="yes">
+              <RegistryValue Type="string" Name="EventMessageFile" Value="[!INSTALLDIR]\dev\php5ts.dll"/>
+            </RegistryKey>
+            <RegistryKey Id="w2k3TypesSupported" Root="HKLM" Key="System\CurrentControlSet\Services\EventLog\Application\PHP" ForceCreateOnInstall="yes">
+              <RegistryValue Type="integer" Name="TypesSupported" Value="7"/>
+            </RegistryKey>
+            <Condition>VersionNT = 502</Condition>    
+          </Component>
+          <Component Id="errorlog"
+            DiskId="1"
+            Guid="C90F9100-7234-11DE-8A39-0800200C9A66"
+            KeyPath="yes">
+            <IniFile Id="logerrorsINI" Action="addLine" 
+              Key="log_errors" Directory="INSTALLDIR" Name="php.ini"
+              Section="PHP" Value="On" />
+            <IniFile Id="errorlogINI" Action="addLine" 
+              Key="error_log" Directory="INSTALLDIR" Name="php.ini"
+              Section="PHP" Value="&quot;[%windir]\temp\php-errors.log&quot;" />
+          </Component>
+          <Component Id="php5[ts/]DLL" 
+            DiskId="1" 
+            Guid="14A95C34-564F-4BF9-BFC7-0DAA48A96BA2">
+            <File Id="file25" 
+              Name="php5[ts/].dll" 
+              Source="Files\$(var.Platform)\php5[ts/].dll"/>
+          </Component>
+          <Component Id="pharcommandPHAR" 
+            DiskId="1" 
+            Guid="86e9a7a0-5f6c-11de-8a39-0800200c9a66">
+            <File Id="filepharcommandPHAR" 
+              Name="pharcommand.phar" 
+              Source="Files\$(var.Platform)\pharcommand.phar"/>
+          </Component>
+          <Component Id="pharBAT" 
+            DiskId="1" 
+            Guid="d266c230-5f6c-11de-8a39-0800200c9a66">
+            <File Id="filepharpharBAT" 
+              Name="phar.phar.bar" 
+              Source="Files\$(var.Platform)\phar.phar.bat"/>
+          </Component>
+          <Component Id="Empty" 
+            DiskId="1" 
+            Guid="24C87A13-FDBA-489B-AE2D-F9406EBA265A"
+            KeyPath="yes"/>
+          <Directory Id="devdirectory" 
+            Name="dev">
+            <Component Id="php5[ts/]LIB" 
+              DiskId="1" 
+              Guid="52593C5C-6709-49B9-B1C0-6729C977DE65">
+              <File Id="file30" 
+                Name="php5[ts/].lib" 
+                Source="Files\$(var.Platform)\dev\php5[ts/].lib"/>
+            </Component>
+          </Directory>
+[nts]
+          <Directory Id="PEARdirectory" 
+            Name="PEAR">
+            <Component Id="gopearPHAR" 
+              DiskId="1" 
+              Guid="F3B9AE05-9E15-4E06-8192-91C513C8209A">
+              <File Id="file181" 
+                Name="go-pear.phar" 
+                Source="Files\$(var.Platform)\PEAR\go-pear.phar"/>
+            </Component>
+          </Directory>
+[/nts]
+        </Directory>
+      </Directory>
+      <Directory Id="ProgramMenuFolder" 
+        Name="Programs">
+        <Directory Id="ProgramMenuDir" 
+          Name="PHP 5">
+          <Component Id="programMenu" Guid="E510F3DA-82AA-11DF-8814-8970DFD72085">
+            <RemoveFolder Id="RemoveProgramMenuDir" Directory="ProgramMenuDir" On="uninstall" />
+            <RegistryValue Root="HKCU" Key="Software\PHP" Type="string" Value="" KeyPath="yes" />
+          </Component>
+        </Directory>
+      </Directory>
+    </Directory>
+    <Feature AllowAdvertise="no" 
+      Id="Complete" 
+      Title="!(loc.FeatureCompleteTitle)" 
+      Description="!(loc.FeatureCompleteDescription)" 
+      TypicalDefault="install" 
+      Display="expand" 
+      ConfigurableDirectory="INSTALLDIR" 
+      Level="1">
+      <ComponentRef Id="licenseTXT"/>
+      <ComponentRef Id="newsTXT"/>
+      <ComponentRef Id="readmedistbinsTXT"/>
+      <ComponentRef Id="installTXT"/>
+      <ComponentRef Id="phpGIF"/>
+      <ComponentRef Id="phprecommendedINI"/>
+      <ComponentRef Id="win2003eventlog"/>
+      <ComponentRef Id="PHPRegistry"/>
+      <ComponentRef Id="programMenu"/>
+      <ComponentRef Id="php5[ts/]DLL"/>
+      <ComponentRef Id="php5[ts/]LIB"/>
+      <ComponentRef Id="php5embedLIB"/>
+      <ComponentRef Id="phpEXE"/>
+      <ComponentRef Id="errorlog"/>
+      <ComponentRef Id="pharcommandPHAR"/>
+      <ComponentRef Id="pharBAT"/>
+        <Feature AllowAdvertise="no" 
+          Id="ScriptExecutable" 
+          Title="!(loc.FeatureScriptExecutableTitle)" 
+          Description="!(loc.FeatureScriptExecutableDescription)" 
+          Level="10">
+          <Feature AllowAdvertise="no" 
+            Id="RegisterPHPFiles" 
+            Title="!(loc.FeatureRegisterPHPFilesTitle)" 
+            Description="!(loc.FeatureRegisterPHPFilesDescription)" 
+            Level="10">
+            <ComponentRef Id="phpwinEXE"/>
+            <ComponentRef Id="RegisterPHPFilesREG"/>
+          </Feature>
+        </Feature>
+    
+      <FeatureRef Id="Extensions"/>
+      
+      <Feature AllowAdvertise="no" 
+        Id="WebServers" 
+        Title="!(loc.FeatureWebServersTitle)" 
+        Description="!(loc.FeatureWebServersDescription)"
+        Display="hidden"
+        Level="10">
+        <ComponentRef Id="Empty"/>
+[ts]
+[lt(5.5)]
+        <Feature AllowAdvertise="no" 
+          Id="apache22" 
+          Title="!(loc.Featureapache22Title)" 
+          Description="!(loc.Featureapache22Description)" 
+          Level="10">
+          <ComponentRef Id="php5apache2_2DLL"/>
+          <ComponentRef Id="php5apache2_2_filterDLL"/>
+          <ComponentRef Id="phpwinEXE"/>
+          <ComponentRef Id="apache22registry"/>
+        </Feature>
+[/end]
+[ge(5.4.0)]
+        <Feature AllowAdvertise="no" 
+          Id="apache24" 
+          Title="!(loc.Featureapache24Title)" 
+          Description="!(loc.Featureapache24Description)" 
+          Level="10">
+          <ComponentRef Id="php5apache2_4DLL"/>
+          <ComponentRef Id="phpwinEXE"/>
+          <ComponentRef Id="apache24registry"/>
+        </Feature>
+[/end]
+        <Feature AllowAdvertise="no" 
+          Id="apacheCGI" 
+          Title="!(loc.FeatureapacheCGITitle)" 
+          Description="!(loc.FeatureapacheCGIDescription)" 
+          Level="1">
+          <ComponentRef Id="phpcgiEXE"/>
+          <ComponentRef Id="cgiforceredirect"/>
+          <ComponentRef Id="phpwinEXE"/>
+          <ComponentRef Id="apacheCGIregistry"/>
+        </Feature>
+[/ts]
+
+[nts]
+        <Feature AllowAdvertise="no" 
+          Id="iis4ISAPI" 
+          Title="!(loc.Featureiis4ISAPITitle)" 
+          Description="!(loc.Featureiis4ISAPIDescription)" 
+          Level="10">
+        </Feature>
+[/nts]
+        <Feature AllowAdvertise="no" 
+          Id="iis4CGI" 
+          Title="!(loc.Featureiis4CGITitle)" 
+          Description="!(loc.Featureiis4CGIDescription)" 
+          Level="1">
+[ts]
+          <ComponentRef Id="phpcgiEXE"/>
+          <ComponentRef Id="cgiforceredirect"/>
+          <ComponentRef Id="iis3CGI"/>
+          <ComponentRef Id="iis4CGIregistry"/>
+[/ts]
+        </Feature>
+
+        <Feature AllowAdvertise="no" 
+          Id="iis4FastCGI" 
+          Title="!(loc.Featureiis4FastCGITitle)" 
+          Description="!(loc.Featureiis4FastCGIDescription)" 
+          Level="1">
+          <ComponentRef Id="phpcgiEXE"/>
+          <ComponentRef Id="cgiforceredirect"/>
+          <ComponentRef Id="fastcgiimpersonate"/>
+          <ComponentRef Id="fastcgilogging"/>
+          <ComponentRef Id="maxexecutiontime" />
+          <ComponentRef Id="iis4FastCGIregistry"/>
+        </Feature>
+[ts]
+        <Feature AllowAdvertise="no" 
+          Id="nsapi" 
+          Title="!(loc.FeaturensapiTitle)"
+          Description="!(loc.FeaturensapiDescription)" 
+          Level="10">
+          <ComponentRef Id="phpcgiEXE"/>
+          <ComponentRef Id="nsapiregistry"/>
+        </Feature>
+        <Feature AllowAdvertise="no" 
+          Id="xitami" 
+          Title="!(loc.FeaturexitamiTitle)" 
+          Description="!(loc.FeaturexitamiDescription)" 
+          Level="1">
+          <ComponentRef Id="phpcgiEXE"/>
+          <ComponentRef Id="cgiforceredirect"/>
+          <ComponentRef Id="cgifixpathinfo"/>
+          <ComponentRef Id="xitamiINI"/>
+          <ComponentRef Id="xitamiregistry"/>
+        </Feature>
+        <Feature AllowAdvertise="no" 
+          Id="netserve" 
+          Title="!(loc.FeaturenetserveTitle)" 
+          Description="!(loc.FeaturenetserveDescription)" 
+          Level="1">
+          <ComponentRef Id="phpcgiEXE"/>
+          <ComponentRef Id="cgiregistry"/>
+        </Feature>
+[/ts]
+
+        <Feature AllowAdvertise="no" 
+          Id="cgi" 
+          Title="!(loc.FeaturecgiTitle)" 
+          Description="!(loc.FeaturecgiDescription)" 
+          Level="1">
+          <ComponentRef Id="phpcgiEXE"/>
+          <ComponentRef Id="cgiregistry"/>
+        </Feature>
+        <Feature AllowAdvertise="no" 
+          Id="noconfig" 
+          Title="!(loc.FeaturecgiTitle)" 
+          Description="!(loc.FeaturecgiDescription)" 
+          Level="1">
+          <ComponentRef Id="noconfigregistry"/>
+        </Feature>
+      </Feature>
+[nts]
+      <Feature AllowAdvertise="no" 
+        Id="extras" 
+        Title="!(loc.FeatureextrasTitle)" 
+        Description="!(loc.FeatureextrasDescription)" 
+        Level="10">
+        <ComponentRef Id="Empty"/>
+        <Feature AllowAdvertise="no" 
+          Id="PEAR" 
+          Title="!(loc.FeaturePEARTitle)" 
+          Description="!(loc.FeaturePEARDescription)" 
+          Level="1">
+          <ComponentRef Id="gopearPHAR"/>
+          <ComponentRef Id="gopearBAT"/>
+        </Feature>
+        <Feature AllowAdvertise="no" 
+          Id="Manual" 
+          Title="!(loc.FeatureManualTitle)" 
+          Description="!(loc.FeatureManualDescription)" 
+          Level="1">
+          <ComponentRef Id="phpCHM"/>
+        </Feature>
+      </Feature>
+[/nts]
+    </Feature>
+
+    <Binary Id="PHPInstallerScripts" SourceFile="PHPInstallerScripts.vbs" /> 
+    <Binary Id="WixCA" SourceFile="Wix\WixUtilExtension.dll"/>
+[ts]
+    <CustomAction Id="netserveCGIInterpretersaddCmd"
+      Property="netserveCGIInterpretersadd"
+      Value="&quot;[$(var.PlatformProgramFilesFolder)]NetServe Web Server\config.exe&quot; /add CGIInterpreters php^|&quot;[INSTALLDIR]php-cgi.exe&quot;" />
+    <CustomAction Id="netserveCGIInterpretersadd" 
+      BinaryKey="WixCA" 
+      DllEntry="CAQuietExec" 
+      Return="ignore" 
+      Execute="deferred"
+      Impersonate="no" />
+    <CustomAction Id="netserveCustomCGIVariablesaddCmd"
+      Property="netserveCustomCGIVariablesadd"
+      Value="&quot;[$(var.PlatformProgramFilesFolder)]NetServe Web Server\config.exe&quot; /add CustomCGIVariables REDIRECT_STATUS^|200" />
+    <CustomAction Id="netserveCustomCGIVariablesadd" 
+      BinaryKey="WixCA" 
+      DllEntry="CAQuietExec" 
+      Return="ignore" 
+      Execute="deferred"
+      Impersonate="no" />
+    <CustomAction Id="netserveCGIInterpretersremoveCmd"
+      Property="netserveCGIInterpretersremove"
+      Value="&quot;[$(var.PlatformProgramFilesFolder)]NetServe Web Server\config.exe&quot; /del CGIInterpreters php^|&quot;[INSTALLDIR]php-cgi.exe&quot;" />
+    <CustomAction Id="netserveCGIInterpretersremove" 
+      BinaryKey="WixCA" 
+      DllEntry="CAQuietExec" 
+      Return="ignore" 
+      Execute="deferred"
+      Impersonate="no" />
+[/ts]
+    <CustomAction Id="iis700FastCGIaddCmd"
+      Property="iis700FastCGIadd"
+      Value="&quot;[WindowsFolder]system32\inetsrv\APPCMD.EXE&quot; SET CONFIG -section:system.webServer/fastCGI /+&quot;[\[]fullPath='[INSTALLDIR]php-cgi.exe'[\]]&quot;" />
+    <CustomAction Id="iis700FastCGIadd" 
+      BinaryKey="WixCA" 
+      DllEntry="CAQuietExec" 
+      Return="ignore" 
+      Execute="deferred"
+      Impersonate="no" />
+    <CustomAction Id="iis700FastCGISetInstanceMaxRequestsCmd"
+      Property="iis700FastCGISetInstanceMaxRequests"
+      Value="&quot;[WindowsFolder]system32\inetsrv\APPCMD.EXE&quot; SET CONFIG -section:system.webServer/fastCGI &quot;/[\[]fullPath='[INSTALLDIR]php-cgi.exe'[\]].instanceMaxRequests:10000&quot; /commit:apphost" />
+    <CustomAction Id="iis700FastCGISetInstanceMaxRequests" 
+      BinaryKey="WixCA" 
+      DllEntry="CAQuietExec" 
+      Return="ignore" 
+      Execute="deferred"
+      Impersonate="no" />
+    <CustomAction Id="iis700FastCGISetActivityTimeoutCmd"
+      Property="iis700FastCGISetActivityTimeout"
+      Value="&quot;[WindowsFolder]system32\inetsrv\APPCMD.EXE&quot; SET CONFIG -section:system.webServer/fastCGI &quot;/[\[]fullPath='[INSTALLDIR]php-cgi.exe'[\]].activityTimeout:600&quot; /commit:apphost" />
+    <CustomAction Id="iis700FastCGISetActivityTimeout" 
+      BinaryKey="WixCA" 
+      DllEntry="CAQuietExec" 
+      Return="ignore" 
+      Execute="deferred"
+      Impersonate="no" />
+    <CustomAction Id="iis700FastCGISetRequestTimeoutCmd"
+      Property="iis700FastCGISetRequestTimeout"
+      Value="&quot;[WindowsFolder]system32\inetsrv\APPCMD.EXE&quot; SET CONFIG -section:system.webServer/fastCGI &quot;/[\[]fullPath='[INSTALLDIR]php-cgi.exe'[\]].requestTimeout:600&quot; /commit:apphost" />
+    <CustomAction Id="iis700FastCGISetRequestTimeout"
+      BinaryKey="WixCA" 
+      DllEntry="CAQuietExec" 
+      Return="ignore" 
+      Execute="deferred"
+      Impersonate="no" />
+    <CustomAction Id="iis700FastCGISetPHP_FCGI_MAX_REQUESTSCmd"
+      Property="iis700FastCGISetPHP_FCGI_MAX_REQUESTS"
+      Value="&quot;[WindowsFolder]system32\inetsrv\APPCMD.EXE&quot; SET CONFIG -section:system.webServer/fastCGI /+&quot;[\[]fullPath='[INSTALLDIR]php-cgi.exe'[\]].environmentVariables.[\[]name='PHP_FCGI_MAX_REQUESTS',value='10000'[\]]&quot; /commit:apphost" />
+    <CustomAction Id="iis700FastCGISetPHP_FCGI_MAX_REQUESTS" 
+      BinaryKey="WixCA" 
+      DllEntry="CAQuietExec" 
+      Return="ignore" 
+      Execute="deferred"
+      Impersonate="no" />
+    <CustomAction Id="iis700FastCGISetPHPRCCmd"
+      Property="iis700FastCGISetPHPRC"
+      Value="&quot;[WindowsFolder]system32\inetsrv\APPCMD.EXE&quot; SET CONFIG -section:system.webServer/fastCGI /+&quot;[\[]fullPath='[INSTALLDIR]php-cgi.exe'[\]].environmentVariables.[\[]name='PHPRC',value='[INSTALLDIR]'[\]]&quot; /commit:apphost" />
+    <CustomAction Id="iis700FastCGISetPHPRC" 
+      BinaryKey="WixCA" DllEntry="CAQuietExec" Return="ignore" 
+      Execute="deferred"
+      Impersonate="no" />
+    <CustomAction Id="iis700FastCGICmd"
+      Property="iis700FastCGI"
+      Value="&quot;[WindowsFolder]system32\inetsrv\APPCMD.EXE&quot; SET CONFIG -section:system.webServer/handlers /+&quot;[\[]name='PHP_via_FastCGI',path='*.php',verb='*',modules='FastCgiModule',scriptProcessor='[INSTALLDIR]php-cgi.exe',resourceType='Either'[\]]&quot;" />
+    <CustomAction Id="iis700FastCGI" 
+      BinaryKey="WixCA" 
+      DllEntry="CAQuietExec" 
+      Return="ignore" 
+      Execute="deferred"
+      Impersonate="no" />
+    <CustomAction Id="iis700IndexPhpCmd"
+      Property="iis700IndexPhp"
+      Value="&quot;[WindowsFolder]system32\inetsrv\APPCMD.EXE&quot; SET CONFIG -section:system.webServer/defaultDocument /+&quot;files.[\[]@end,value='index.php'[\]]&quot;" />
+    <CustomAction Id="iis700IndexPhp"
+      BinaryKey="WixCA"
+      DllEntry="CAQuietExec"
+      Return="ignore"
+      Execute="deferred"
+      Impersonate="no" />
+    <CustomAction Id="iis700FastCGIaddremoveCmd"
+      Property="iis700FastCGIaddremove"
+      Value="&quot;[WindowsFolder]system32\inetsrv\APPCMD.EXE&quot; SET CONFIG -section:system.webServer/fastCGI /-&quot;[\[]fullPath='[INSTALLDIR]php-cgi.exe'[\]]&quot;" />
+    <CustomAction Id="iis700FastCGIaddremove" 
+      BinaryKey="WixCA" 
+      DllEntry="CAQuietExec" 
+      Return="ignore" 
+      Execute="deferred"
+      Impersonate="no" />
+    <CustomAction Id="iis700FastCGIremoveCmd"
+      Property="iis700FastCGIremove"
+      Value="&quot;[WindowsFolder]system32\inetsrv\APPCMD.EXE&quot; SET CONFIG -section:system.webServer/handlers /-&quot;[\[]name='PHP_via_FastCGI',path='*.php',verb='*'[\]]&quot;" />
+    <CustomAction Id="iis700FastCGIremove" 
+      BinaryKey="WixCA"
+      DllEntry="CAQuietExec" 
+      Return="ignore"
+      Execute="deferred"
+      Impersonate="no" />
+    <CustomAction Id="fcgiconfigJSFastCGICmd"
+      Property="fcgiconfigJSFastCGI"
+      Value="&quot;\\localhost\admin$\system32\cscript.exe&quot; &quot;[WindowsFolder]system32\inetsrv\fcgiconfig.js&quot; -add -section:&quot;PHP&quot; -extension:php -path:&quot;[INSTALLDIR]php-cgi.exe&quot;" />
+    <CustomAction Id="fcgiconfigJSFastCGI" 
+      BinaryKey="WixCA"
+      DllEntry="CAQuietExec" 
+      Return="ignore"
+      Execute="deferred"
+      Impersonate="no" />
+    <CustomAction Id="fcgiconfigJSFastCGICmdXP"
+      Property="fcgiconfigJSFastCGIXP"
+      Value="&quot;cscript&quot; &quot;[WindowsFolder]system32\inetsrv\fcgiconfig.js&quot; -add -section:&quot;PHP&quot; -extension:php -path:&quot;[INSTALLDIR]php-cgi.exe&quot;" />      
+    <CustomAction Id="fcgiconfigJSFastCGIXP" 
+      BinaryKey="WixCA"
+      DllEntry="CAQuietExec" 
+      Return="ignore"
+      Execute="deferred"
+      Impersonate="no" />      
+    <CustomAction Id="fcgiconfigJSFastCGISetInstanceMaxRequestsCmd"
+      Property="fcgiconfigJSFastCGISetInstanceMaxRequests"
+      Value="&quot;\\localhost\admin$\system32\cscript.exe&quot; &quot;[WindowsFolder]system32\inetsrv\fcgiconfig.js&quot; -set -section:&quot;PHP&quot; -InstanceMaxRequests:10000" />
+    <CustomAction Id="fcgiconfigJSFastCGISetInstanceMaxRequests" 
+      BinaryKey="WixCA" 
+      DllEntry="CAQuietExec" 
+      Return="ignore"
+      Execute="deferred"
+      Impersonate="no" />
+    <CustomAction Id="fcgiconfigJSFastCGISetInstanceMaxRequestsCmdXP"
+      Property="fcgiconfigJSFastCGISetInstanceMaxRequestsXP"
+      Value="&quot;cscript&quot; &quot;[WindowsFolder]system32\inetsrv\fcgiconfig.js&quot; -set -section:&quot;PHP&quot; -InstanceMaxRequests:10000" />
+    <CustomAction Id="fcgiconfigJSFastCGISetInstanceMaxRequestsXP" 
+      BinaryKey="WixCA" 
+      DllEntry="CAQuietExec" 
+      Return="ignore"
+      Execute="deferred"
+      Impersonate="no" />
+    <CustomAction Id="fcgiconfigJSFastCGISetActivityTimeoutCmd"
+      Property="fcgiconfigJSFastCGISetActivityTimeout"
+      Value="&quot;\\localhost\admin$\system32\cscript.exe&quot; &quot;[WindowsFolder]system32\inetsrv\fcgiconfig.js&quot; -set -section:&quot;PHP&quot; -ActivityTimeout:600" />
+    <CustomAction Id="fcgiconfigJSFastCGISetActivityTimeout"
+      BinaryKey="WixCA" 
+      DllEntry="CAQuietExec" 
+      Return="ignore"
+      Execute="deferred"
+      Impersonate="no" />
+    <CustomAction Id="fcgiconfigJSFastCGISetActivityTimeoutCmdXP"
+      Property="fcgiconfigJSFastCGISetActivityTimeoutXP"
+      Value="&quot;cscript&quot; &quot;[WindowsFolder]system32\inetsrv\fcgiconfig.js&quot; -set -section:&quot;PHP&quot; -ActivityTimeout:600" />
+    <CustomAction Id="fcgiconfigJSFastCGISetActivityTimeoutXP"
+      BinaryKey="WixCA" 
+      DllEntry="CAQuietExec" 
+      Return="ignore"
+      Execute="deferred"
+      Impersonate="no" />
+    <CustomAction Id="fcgiconfigJSFastCGISetRequestTimeoutCmd"
+      Property="fcgiconfigJSFastCGISetRequestTimeout"
+      Value="&quot;\\localhost\admin$\system32\cscript.exe&quot; &quot;[WindowsFolder]system32\inetsrv\fcgiconfig.js&quot; -set -section:&quot;PHP&quot; -RequestTimeout:600" />
+    <CustomAction Id="fcgiconfigJSFastCGISetRequestTimeout"
+      BinaryKey="WixCA" 
+      DllEntry="CAQuietExec" 
+      Return="ignore"
+      Execute="deferred"
+      Impersonate="no" />
+    <CustomAction Id="fcgiconfigJSFastCGISetRequestTimeoutCmdXP"
+      Property="fcgiconfigJSFastCGISetRequestTimeoutXP"
+      Value="&quot;cscript&quot; &quot;[WindowsFolder]system32\inetsrv\fcgiconfig.js&quot; -set -section:&quot;PHP&quot; -RequestTimeout:600" />
+    <CustomAction Id="fcgiconfigJSFastCGISetRequestTimeoutXP" 
+      BinaryKey="WixCA" 
+      DllEntry="CAQuietExec" 
+      Return="ignore"
+      Execute="deferred"
+      Impersonate="no" />
+    <CustomAction Id="fcgiconfigJSFastCGISetPHPRCAndMAX_REQUESTSCmd"
+      Property="fcgiconfigJSFastCGISetPHPRCAndMAX_REQUESTS"
+      Value="&quot;\\localhost\admin$\system32\cscript.exe&quot; &quot;[WindowsFolder]system32\inetsrv\fcgiconfig.js&quot; -set -section:&quot;PHP&quot; -EnvironmentVars:PHP_FCGI_MAX_REQUESTS:10000,PHPRC:&quot;[INSTALLDIR]&quot;" />
+    <CustomAction Id="fcgiconfigJSFastCGISetPHPRCAndMAX_REQUESTS" 
+      BinaryKey="WixCA" 
+      DllEntry="CAQuietExec" 
+      Return="ignore"
+      Execute="deferred"
+      Impersonate="no" />
+    <CustomAction Id="fcgiconfigJSFastCGISetPHPRCAndMAX_REQUESTSCmdXP"
+      Property="fcgiconfigJSFastCGISetPHPRCAndMAX_REQUESTSXP"
+      Value="&quot;cscript&quot; &quot;[WindowsFolder]system32\inetsrv\fcgiconfig.js&quot; -set -section:&quot;PHP&quot; -EnvironmentVars:PHP_FCGI_MAX_REQUESTS:10000,PHPRC:&quot;[INSTALLDIR]&quot;" />
+    <CustomAction Id="fcgiconfigJSFastCGISetPHPRCAndMAX_REQUESTSXP" 
+      BinaryKey="WixCA" 
+      DllEntry="CAQuietExec" 
+      Return="ignore"
+      Execute="deferred"
+      Impersonate="no" />      
+    <CustomAction Id="fcgiconfigJSFastCGIremoveCmd"
+      Property="fcgiconfigJSFastCGIremove"
+      Value="&quot;\\localhost\admin$\system32\cscript.exe&quot; &quot;[WindowsFolder]system32\inetsrv\fcgiconfig.js&quot; -remove -section:&quot;PHP&quot;" />
+    <CustomAction Id="fcgiconfigJSFastCGIremove" 
+      BinaryKey="WixCA" 
+      DllEntry="CAQuietExec" 
+      Return="ignore"
+      Execute="deferred"
+      Impersonate="no" />
+    <CustomAction Id="fcgiconfigJSFastCGIremoveCmdXP"
+      Property="fcgiconfigJSFastCGIremoveXP"
+      Value="&quot;cscript&quot; &quot;[WindowsFolder]system32\inetsrv\fcgiconfig.js&quot; -remove -section:&quot;PHP&quot;" />            
+    <CustomAction Id="fcgiconfigJSFastCGIremoveXP" 
+      BinaryKey="WixCA" 
+      DllEntry="CAQuietExec" 
+      Return="ignore"
+      Execute="deferred"
+      Impersonate="no" />      
+    <CustomAction Id="configIIS4" 
+      BinaryKey="PHPInstallerScripts" 
+      Return="check" 
+      Execute="deferred"
+      Impersonate="no" 
+      VBScriptCall="configIIS4" />
+    <CustomAction Id="configIIS4CGICustomActionDataValue" 
+      Return="check" 
+      Property="configIIS4" 
+      Value="[INSTALLDIR],iis4CGI" />
+[nts]
+    <CustomAction Id="configIIS4ISAPICustomActionDataValue" 
+      Return="check" 
+      Property="configIIS4" 
+      Value="[INSTALLDIR],iis4ISAPI" />
+[/nts]
+    <CustomAction Id="configIIS4FastCGICustomActionDataValue" 
+      Return="check" 
+      Property="configIIS4" 
+      Value="[INSTALLDIR],iis4FastCGI" />
+    <CustomAction Id="unconfigIIS4" 
+      BinaryKey="PHPInstallerScripts" 
+      Return="check" 
+      Execute="deferred"
+      Impersonate="no" 
+      VBScriptCall="unconfigIIS4" />
+[ts]
+    <CustomAction Id="configApache" 
+      BinaryKey="PHPInstallerScripts" 
+      Return="check" 
+      Execute="deferred"
+      Impersonate="no" 
+      VBScriptCall="configApache" />
+[lt(5.5)]
+    <CustomAction Id="configApache22CustomActionDataValue" 
+      Return="check" 
+      Property="configApache" 
+      Value="[APACHEDIR],[INSTALLDIR],apache22" />
+[/end]
+[ge(5.4.0)]
+    <CustomAction Id="configApache24CustomActionDataValue" 
+      Return="check" 
+      Property="configApache" 
+      Value="[APACHEDIR],[INSTALLDIR],apache24" />
+[/end]
+    <CustomAction Id="configApacheCGICustomActionDataValue" 
+      Return="check" 
+      Property="configApache" 
+      Value="[APACHEDIR],[INSTALLDIR],apacheCGI" />
+    <CustomAction Id="unconfigApache" 
+      BinaryKey="PHPInstallerScripts" 
+      Return="check" 
+      Execute="deferred"
+      Impersonate="no" 
+      VBScriptCall="unconfigApache" />
+[/ts]
+    <InstallExecuteSequence>
+[ts]
+      <Custom Action="netserveCGIInterpretersaddCmd" After="InstallInitialize">
+        <![CDATA[&netserve = 3]]>
+      </Custom>
+      <Custom Action="netserveCGIInterpretersadd" After="netserveCGIInterpretersaddCmd">
+        <![CDATA[&netserve = 3]]>
+      </Custom>
+      <Custom Action="netserveCustomCGIVariablesaddCmd" After="netserveCGIInterpretersadd">
+        <![CDATA[&netserve = 3]]>
+      </Custom>
+      <Custom Action="netserveCustomCGIVariablesadd" After="netserveCustomCGIVariablesaddCmd">
+        <![CDATA[&netserve = 3]]>
+      </Custom>
+      <Custom Action="netserveCGIInterpretersremoveCmd" After="InstallInitialize">
+        <![CDATA[&netserve = 2]]>
+      </Custom>
+      <Custom Action="netserveCGIInterpretersremove" After="netserveCGIInterpretersremoveCmd">
+        <![CDATA[&netserve = 2]]>
+      </Custom>
+[/ts]
+      <Custom Action="iis700FastCGIaddCmd" After="InstallInitialize">
+        <![CDATA[VersionNT >= 600 AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="iis700FastCGIadd" After="iis700FastCGIaddCmd">
+        <![CDATA[VersionNT >= 600 AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="iis700FastCGISetInstanceMaxRequestsCmd" After="iis700FastCGIadd">
+        <![CDATA[VersionNT >= 600 AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="iis700FastCGISetInstanceMaxRequests" After="iis700FastCGISetInstanceMaxRequestsCmd">
+        <![CDATA[VersionNT >= 600 AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="iis700FastCGISetActivityTimeoutCmd" After="iis700FastCGISetInstanceMaxRequests">
+        <![CDATA[VersionNT >= 600 AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="iis700FastCGISetActivityTimeout" After="iis700FastCGISetActivityTimeoutCmd">
+        <![CDATA[VersionNT >= 600 AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="iis700FastCGISetRequestTimeoutCmd" After="iis700FastCGISetActivityTimeout">
+        <![CDATA[VersionNT >= 600 AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="iis700FastCGISetRequestTimeout" After="iis700FastCGISetRequestTimeoutCmd">
+        <![CDATA[VersionNT >= 600 AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="iis700FastCGISetPHP_FCGI_MAX_REQUESTSCmd" After="iis700FastCGISetRequestTimeout">
+        <![CDATA[VersionNT >= 600 AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="iis700FastCGISetPHP_FCGI_MAX_REQUESTS" After="iis700FastCGISetPHP_FCGI_MAX_REQUESTSCmd">
+        <![CDATA[VersionNT >= 600 AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="iis700FastCGISetPHPRCCmd" After="iis700FastCGISetPHP_FCGI_MAX_REQUESTS">
+        <![CDATA[VersionNT >= 600 AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="iis700FastCGISetPHPRC" After="iis700FastCGISetPHPRCCmd">
+        <![CDATA[VersionNT >= 600 AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="iis700FastCGICmd" After="iis700FastCGISetPHPRC">
+        <![CDATA[VersionNT >= 600 AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="iis700FastCGI" After="iis700FastCGICmd">
+        <![CDATA[VersionNT >= 600 AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="iis700IndexPhpCmd" After="iis700FastCGI">
+        <![CDATA[VersionNT >= 600 AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="iis700IndexPhp" After="iis700IndexPhpCmd">
+        <![CDATA[VersionNT >= 600 AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="iis700FastCGIremoveCmd" After="InstallInitialize">
+        <![CDATA[VersionNT >= 600 AND &iis4FastCGI = 2]]>
+      </Custom>
+      <Custom Action="iis700FastCGIremove" After="iis700FastCGIremoveCmd">
+        <![CDATA[VersionNT >= 600 AND &iis4FastCGI = 2]]>
+      </Custom>
+      <Custom Action="iis700FastCGIaddremoveCmd" After="iis700FastCGIremove">
+        <![CDATA[VersionNT >= 600 AND &iis4FastCGI = 2]]>
+      </Custom>
+      <Custom Action="iis700FastCGIaddremove" After="iis700FastCGIaddremoveCmd">
+        <![CDATA[VersionNT >= 600 AND &iis4FastCGI = 2]]>
+      </Custom>
+      <Custom Action="fcgiconfigJSFastCGICmd" After="InstallInitialize">
+        <![CDATA[(VersionNT = 502 AND ServicePackLevel >= 2) AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="fcgiconfigJSFastCGI" After="fcgiconfigJSFastCGICmd">
+        <![CDATA[(VersionNT = 502 AND ServicePackLevel >= 2) AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="fcgiconfigJSFastCGISetInstanceMaxRequestsCmd" After="fcgiconfigJSFastCGI">
+        <![CDATA[(VersionNT = 502 AND ServicePackLevel >= 2) AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="fcgiconfigJSFastCGISetInstanceMaxRequests" After="fcgiconfigJSFastCGISetInstanceMaxRequestsCmd">
+        <![CDATA[(VersionNT = 502 AND ServicePackLevel >= 2) AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="fcgiconfigJSFastCGISetActivityTimeoutCmd" After="fcgiconfigJSFastCGISetInstanceMaxRequests">
+        <![CDATA[(VersionNT = 502 AND ServicePackLevel >= 2) AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="fcgiconfigJSFastCGISetActivityTimeout" After="fcgiconfigJSFastCGISetActivityTimeoutCmd">
+        <![CDATA[(VersionNT = 502 AND ServicePackLevel >= 2) AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="fcgiconfigJSFastCGISetRequestTimeoutCmd" After="fcgiconfigJSFastCGISetActivityTimeout">
+        <![CDATA[(VersionNT = 502 AND ServicePackLevel >= 2) AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="fcgiconfigJSFastCGISetRequestTimeout" After="fcgiconfigJSFastCGISetRequestTimeoutCmd">
+        <![CDATA[(VersionNT = 502 AND ServicePackLevel >= 2) AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="fcgiconfigJSFastCGISetPHPRCAndMAX_REQUESTSCmd" After="fcgiconfigJSFastCGISetRequestTimeout">
+        <![CDATA[(VersionNT = 502 AND ServicePackLevel >= 2) AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="fcgiconfigJSFastCGISetPHPRCAndMAX_REQUESTS" After="fcgiconfigJSFastCGISetPHPRCAndMAX_REQUESTSCmd">
+        <![CDATA[(VersionNT = 502 AND ServicePackLevel >= 2) AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="fcgiconfigJSFastCGICmdXP" After="InstallInitialize">
+        <![CDATA[(VersionNT = 501 AND ServicePackLevel >= 2) AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="fcgiconfigJSFastCGIXP" After="fcgiconfigJSFastCGICmdXP">
+        <![CDATA[(VersionNT = 501 AND ServicePackLevel >= 2) AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="fcgiconfigJSFastCGISetInstanceMaxRequestsCmdXP" After="fcgiconfigJSFastCGIXP">
+        <![CDATA[(VersionNT = 501 AND ServicePackLevel >= 2) AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="fcgiconfigJSFastCGISetInstanceMaxRequestsXP" After="fcgiconfigJSFastCGISetInstanceMaxRequestsCmdXP">
+        <![CDATA[(VersionNT = 501 AND ServicePackLevel >= 2) AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="fcgiconfigJSFastCGISetActivityTimeoutCmdXP" After="fcgiconfigJSFastCGISetInstanceMaxRequestsXP">
+        <![CDATA[(VersionNT = 501 AND ServicePackLevel >= 2) AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="fcgiconfigJSFastCGISetActivityTimeoutXP" After="fcgiconfigJSFastCGISetActivityTimeoutCmdXP">
+        <![CDATA[(VersionNT = 501 AND ServicePackLevel >= 2) AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="fcgiconfigJSFastCGISetRequestTimeoutCmdXP" After="fcgiconfigJSFastCGISetActivityTimeoutXP">
+        <![CDATA[(VersionNT = 501 AND ServicePackLevel >= 2) AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="fcgiconfigJSFastCGISetRequestTimeoutXP" After="fcgiconfigJSFastCGISetRequestTimeoutCmdXP">
+        <![CDATA[(VersionNT = 501 AND ServicePackLevel >= 2) AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="fcgiconfigJSFastCGISetPHPRCAndMAX_REQUESTSCmdXP" After="fcgiconfigJSFastCGISetRequestTimeoutXP">
+        <![CDATA[(VersionNT = 501 AND ServicePackLevel >= 2) AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="fcgiconfigJSFastCGISetPHPRCAndMAX_REQUESTSXP" After="fcgiconfigJSFastCGISetPHPRCAndMAX_REQUESTSCmdXP">
+        <![CDATA[(VersionNT = 501 AND ServicePackLevel >= 2) AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="fcgiconfigJSFastCGIremoveCmd" After="InstallInitialize">
+        <![CDATA[(VersionNT = 502 AND ServicePackLevel >= 2) AND &iis4FastCGI = 2]]>
+      </Custom>
+      <Custom Action="fcgiconfigJSFastCGIremove" After="fcgiconfigJSFastCGIremoveCmd">
+        <![CDATA[(VersionNT = 502 AND ServicePackLevel >= 2) AND &iis4FastCGI = 2]]>
+      </Custom>
+      <Custom Action="fcgiconfigJSFastCGIremoveCmdXP" After="InstallInitialize">
+        <![CDATA[(VersionNT = 501 AND ServicePackLevel >= 2) AND &iis4FastCGI = 2]]>
+      </Custom>
+      <Custom Action="fcgiconfigJSFastCGIremoveXP" After="fcgiconfigJSFastCGIremoveCmdXP">
+        <![CDATA[(VersionNT = 501 AND ServicePackLevel >= 2) AND &iis4FastCGI = 2]]>
+      </Custom>
+      <Custom Action="configIIS4CGICustomActionDataValue" After="WriteRegistryValues">
+        <![CDATA[VersionNT < 600 AND &iis4CGI = 3]]>
+      </Custom>
+[nts]
+      <Custom Action="configIIS4ISAPICustomActionDataValue" After="WriteRegistryValues">
+        <![CDATA[VersionNT < 600 AND &iis4ISAPI = 3]]>
+      </Custom>
+[/nts]
+      <Custom Action="configIIS4FastCGICustomActionDataValue" After="WriteRegistryValues">
+        <![CDATA[VersionNT < 600 AND &iis4FastCGI = 3]]>
+      </Custom>
+      <Custom Action="configIIS4" After="configIIS4FastCGICustomActionDataValue">
+        <![CDATA[VersionNT < 600 AND (&iis4FastCGI = 3[nts] OR &iis4ISAPI = 3[/nts][ts] OR &iis4CGI = 3[/ts])]]>
+      </Custom>
+      <Custom Action="unconfigIIS4" After="InstallInitialize">
+        <![CDATA[VersionNT < 600 AND (&iis4FastCGI = 2[nts] OR &iis4ISAPI = 2[/nts][ts] OR &iis4CGI = 2[/ts])]]>
+      </Custom>
+
+[ts]
+[lt(5.5)]
+      <Custom Action="configApache22CustomActionDataValue" After="WriteRegistryValues">
+        <![CDATA[&apache22 = 3]]>
+      </Custom>
+[/end]
+[ge(5.4.0)]
+      <Custom Action="configApache24CustomActionDataValue" After="WriteRegistryValues">
+        <![CDATA[&apache24 = 3]]>
+      </Custom>
+[/end]
+      <Custom Action="configApacheCGICustomActionDataValue" After="WriteRegistryValues">
+        <![CDATA[&apacheCGI = 3]]>
+      </Custom>
+      <Custom Action="configApache" After="configApacheCGICustomActionDataValue">
+        <![CDATA[[lt(5.5)]&apache22 = 3 OR [/end][ge(5.4.0)]&apache24 = 3 OR [/end]&apacheCGI = 3]]>
+      </Custom>
+      <Custom Action="unconfigApache" After="InstallInitialize" >
+        <![CDATA[[lt(5.5)]&apache22 = 2 OR [/end][ge(5.4.0)]&apache24 = 2 OR [/end]&apacheCGI = 2]]>
+      </Custom>
+[/ts]
+      <RemoveExistingProducts After="InstallValidate" /> 
+    </InstallExecuteSequence>
+    
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR"/>
+[ts]
+    <Property Id="WIXUI_APACHEDIR" Value="APACHEDIR"/>
+[/ts]
+    <UIRef Id="WixUI_FeatureTreePHP"/>
+  </Product>
+</Wix>

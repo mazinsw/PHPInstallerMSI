@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+<?if $(var.Platform) = x64 ?>
+  <?define Win64 = "yes" ?>
+  <?define PlatformProgramFilesFolder = "ProgramFiles64Folder" ?>
+<?else ?>
+  <?define Win64 = "no" ?>
+  <?define PlatformProgramFilesFolder = "ProgramFilesFolder" ?>
+<?endif ?>
+  <Fragment Id='FragmentWebServerConfig'>
+    <DirectoryRef Id='INSTALLDIR'>
+      <Component Id="cgiforceredirect" DiskId="1" Guid="0A2DD92F-AFCC-417B-B909-395F9D3B79F5" KeyPath="yes">
+        <IniFile Id="cgiforceredirectINI" Action="addLine" 
+          Key="cgi.force_redirect" Directory="INSTALLDIR" Name="php.ini"
+          Section="PHP" Value="0" />
+      </Component>
+      <Component Id="fastcgiimpersonate" DiskId="1" Guid="61290EEB-616B-4434-8283-D7BDC7008D25" KeyPath="yes">
+        <IniFile Id="fastcgiimpersonateINI" Action="addLine"
+          Key="fastcgi.impersonate" Directory="INSTALLDIR" Name="php.ini"
+          Section="PHP" Value="1"/>
+      </Component>
+      <Component Id="fastcgilogging" DiskId="1" Guid="218C8790-7233-11DE-8A39-0800200C9A66" KeyPath="yes">
+        <IniFile Id="fastcgiloggingINI" Action="addLine"
+          Key="fastcgi.logging" Directory="INSTALLDIR" Name="php.ini"
+          Section="PHP" Value="0"/>
+      </Component>
+      <Component Id="maxexecutiontime" DiskId="1" Guid="5C6D1771-0D27-42C3-946B-3E0E138CF5DA" KeyPath="yes">
+        <IniFile Id="maxexecutiontimeINI" Action="addLine"
+          Key="max_execution_time" Directory="INSTALLDIR" Name="php.ini"
+          Section="PHP" Value="300"/>
+      </Component>
+[ts]
+[lt(5.5)]
+      <Component Id="php5apache2_2DLL" DiskId="1" Guid="280860AA-458A-4856-B593-F200907BB488">
+        <File Id="filephp5apache2_2DLL" Name="php5apache2_2.dll" Source="Files\$(var.Platform)\php5apache2_2.dll" />
+      </Component>
+      <Component Id="php5apache2_2_filterDLL" DiskId="1" Guid="3F440192-A73C-40E0-85DA-00070AEF33FA">
+        <File Id="filephp5apache2_2_filterDLL" Name="php5apache2_2_filter.dll" Source="Files\$(var.Platform)\php5apache2_2_filter.dll" />
+      </Component>
+[/end]
+[ge(5.4.0)]
+      <Component Id="php5apache2_4DLL" DiskId="1" Guid="54216B1C-582F-49A0-86E9-AD7CF586ADA8">
+        <File Id="filephp5apache2_4DLL" Name="php5apache2_4.dll" Source="Files\$(var.Platform)\php5apache2_4.dll" />
+      </Component>
+[/end]
+      <Component Id="cgifixpathinfo" DiskId="1" Guid="E2DBFF96-1551-4928-9D2E-A62E536B2B60" KeyPath="yes">
+        <IniFile Id="cgifixpathinfoINI" Action="addLine" 
+          Key="cgi.fix_pathinfo" Directory="INSTALLDIR" Name="php.ini"
+          Section="PHP" Value="1" />
+      </Component>
+      <Component Id="iis3CGI" DiskId="1" Guid="20842834-47E2-483C-AE09-B4E90C12E314">
+        <RegistryKey Id="iis3RegScriptMap" Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\w3svc\parameters\Script Map\.php" ForceCreateOnInstall="yes">
+          <RegistryValue Type="string" Value="[!INSTALLDIR]\php-cgi.exe"/>
+        </RegistryKey>
+        <Condition><![CDATA[VersionNT < 500]]></Condition>
+      </Component>
+      <Component Id="xitamiINI" DiskId="1" Guid="5C27D17C-3624-11DC-93BF-A48455D89593" KeyPath="yes">
+        <IniFile Id="xitamuINIFilter" Action="addLine" 
+          Key=".php" Directory="XITAMIDIR" Name="defaults.cfg"
+          Section="Filter" Value="[!INSTALLDIR]\php-cgi.exe" />
+        <Condition>XITAMIDIR</Condition>
+      </Component>
+[lt(5.5)]
+      <Component Id="apache22registry" 
+        DiskId="1" 
+        Guid="6B49A089-49A4-11DC-8314-0800200C9A66">
+        <RegistryKey Id="apache22registryApacheDir" Root="HKLM" Key="Software\PHP" ForceCreateOnInstall="yes">
+          <RegistryValue Type="string" Name="ApacheDir" Value="[APACHEDIR]"/>
+        </RegistryKey>
+        <RegistryKey Id="apache22registryWebServerType" Root="HKLM" Key="Software\PHP" ForceCreateOnInstall="yes">
+          <RegistryValue Type="string" Name="WebServerType" Value="apache22"/>
+        </RegistryKey>  
+      </Component>
+[/end]
+[ge(5.4.0)]
+      <Component Id="apache24registry" 
+        DiskId="1" 
+        Guid="6B49A091-49A4-11DC-8314-0800200C9A66">
+        <RegistryKey Id="apache24registryApacheDir" Root="HKLM" Key="Software\PHP" ForceCreateOnInstall="yes">
+          <RegistryValue Type="string" Name="ApacheDir" Value="[APACHEDIR]"/>
+        </RegistryKey>
+        <RegistryKey Id="apache24registryWebServerType" Root="HKLM" Key="Software\PHP" ForceCreateOnInstall="yes">
+          <RegistryValue Type="string" Name="WebServerType" Value="apache24"/>
+        </RegistryKey>  
+      </Component>
+[/end]
+      <Component Id="apacheCGIregistry" 
+        DiskId="1" 
+        Guid="6B49A090-49A4-11DC-8314-0800200C9A66">
+        <RegistryKey Id="apacheCGIregistryApacheDir" Root="HKLM" Key="Software\PHP" ForceCreateOnInstall="yes">
+          <RegistryValue Type="string" Name="ApacheDir" Value="[APACHEDIR]"/>
+        </RegistryKey>
+        <RegistryKey Id="apacheCGIregistryWebServerType" Root="HKLM" Key="Software\PHP" ForceCreateOnInstall="yes">
+          <RegistryValue Type="string" Name="WebServerType" Value="apacheCGI"/>
+        </RegistryKey>  
+      </Component>
+      <Component Id="iis4CGIregistry" 
+        DiskId="1" 
+        Guid="6B49A092-49A4-11DC-8314-0800200C9A66">
+        <RegistryKey Id="iis4CGIregistryWebServerType" Root="HKLM" Key="Software\PHP" ForceCreateOnInstall="yes">
+          <RegistryValue Type="string" Name="WebServerType" Value="iis4CGI"/>
+        </RegistryKey>  
+      </Component>
+      <Component Id="nsapiregistry" 
+        DiskId="1" 
+        Guid="6B49A093-49A4-11DC-8314-0800200C9A66">
+        <RegistryKey Id="nsapiregistryWebServerType" Root="HKLM" Key="Software\PHP" ForceCreateOnInstall="yes">
+          <RegistryValue Type="string" Name="WebServerType" Value="nsapi"/>
+        </RegistryKey>  
+      </Component>
+      <Component Id="xitamiregistry" 
+        DiskId="1" 
+        Guid="6B49A094-49A4-11DC-8314-0800200C9A66">
+        <RegistryKey Id="xitamiregistryWebServerType" Root="HKLM" Key="Software\PHP" ForceCreateOnInstall="yes">
+          <RegistryValue Type="string" Name="WebServerType" Value="xitami"/>
+        </RegistryKey>  
+      </Component>
+[/ts]
+      <Component Id="iis4FastCGIregistry" 
+        DiskId="1" 
+        Guid="36F5E036-6DDF-11DC-8314-0800200C9A66">
+        <RegistryKey Id="iis4FastCGIregistryWebServerType" Root="HKLM" Key="Software\PHP" ForceCreateOnInstall="yes">
+          <RegistryValue Type="string" Name="WebServerType" Value="iis4FastCGI"/>
+        </RegistryKey>  
+      </Component>
+      <Component Id="cgiregistry" 
+        DiskId="1" 
+        Guid="6B49A096-49A4-11DC-8314-0800200C9A66">
+        <RegistryKey Id="cgiregistryWebServerType" Root="HKLM" Key="Software\PHP" ForceCreateOnInstall="yes">
+          <RegistryValue Type="string" Name="WebServerType" Value="cgi"/>
+        </RegistryKey>  
+      </Component>
+      <Component Id="noconfigregistry" 
+        DiskId="1" 
+        Guid="6B49A097-49A4-11DC-8314-0800200C9A66">
+        <RegistryKey Id="noconfigregistryWebServerType" Root="HKLM" Key="Software\PHP" ForceCreateOnInstall="yes">
+          <RegistryValue Type="string" Name="WebServerType" Value="noconfig"/>
+        </RegistryKey>  
+      </Component>
+    </DirectoryRef>
+  </Fragment>
+</Wix>
